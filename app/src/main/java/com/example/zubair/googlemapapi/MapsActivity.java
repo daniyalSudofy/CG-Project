@@ -175,7 +175,7 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
     // Building the url to the web service
     String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
 
-
+//https://maps.googleapis.com/maps/api/directions/json?origin=24.94846,67.107078&destination=24.942868,67.096983&sensor=false&mode=driving
     return url;
 }
 
@@ -278,7 +278,7 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
                     points.add(position);
                 }
-animateMarkerOnRoute(points);
+//animateMarkerOnRoute(points);
                 lineOptions.addAll(points);
                 lineOptions.width(12);
                 lineOptions.color(Color.RED);
@@ -288,14 +288,13 @@ animateMarkerOnRoute(points);
 
 // Drawing polyline in the Google Map for the i-th route
            mPolyline =  mMap.addPolyline(lineOptions);
-
         }
 
-private  void animateMarkerOnRoute(ArrayList points){
-    for(int i=0; i< points.size()-1; i++){
-
-    }
-}
+//private  void animateMarkerOnRoute(ArrayList points){
+//    for(int i=0; i< points.size()-1; i++){
+//
+//    }
+//}
         //    public void animateMarker(final Marker marker, final LatLng toPosition,
 //                              final boolean hideMarker) {
 //        final Handler handler = new Handler();
