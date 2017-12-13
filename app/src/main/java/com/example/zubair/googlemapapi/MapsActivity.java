@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.Manifest;
@@ -49,6 +50,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker firstmarker,secondmarker,m;
     Button firstlocation_btn,secondlocation_btn,clearlocation_btn;
     LatLng firstLocation, secondLocation,general;
+    Polyline mPolyline;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +96,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 secondlocation_btn.setEnabled(false);
                 firstmarker.remove();
                 secondmarker.remove();
+                mPolyline.remove();
             }
         });
     }
@@ -284,7 +287,7 @@ animateMarkerOnRoute(points);
             }
 
 // Drawing polyline in the Google Map for the i-th route
-            mMap.addPolyline(lineOptions);
+           mPolyline =  mMap.addPolyline(lineOptions);
 
         }
 
