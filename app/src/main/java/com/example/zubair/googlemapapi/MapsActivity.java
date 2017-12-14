@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.Manifest;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -53,15 +54,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LatLng firstLocation, secondLocation, general;
     Polyline mPolyline;
     List allPoints;
+    TextView duration, distance;
     List points;
     Marker marker;
     LatLng toPosition;
     int ii;
     Runnable runnable;
+    public static String dis;
+    public static String dur;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        distance = (TextView) findViewById(R.id.distance);
+        duration = (TextView) findViewById(R.id.duration);
         points = new ArrayList();
         firstlocation_btn = (Button) findViewById(R.id.first_loc_btn);
         secondlocation_btn = (Button) findViewById(R.id.second_loc_btn);
@@ -187,92 +194,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return url;
     }
 
-    public class DownloadTask extends AsyncTask<String,Integer,String> {
+    public class DownloadTask extends AsyncTask<String, Integer, String> {
 
 
-    @Override
-    protected String doInBackground(String... url) {
+        @Override
+        protected String doInBackground(String... url) {
 
-        String data = "";
+            String data = "";
 
-        try {
-            data = downloadUrl(url[0]);
-        } catch (Exception e) {
-            Log.d("Background Task", e.toString());
-        }
-        return data;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        super.onPostExecute(result);
-
-        ParserTask parserTask = new ParserTask();
-        parserTask.execute(result);
-
-    }
-    private String downloadUrl(String strUrl) throws IOException {
-        String data = "";
-        InputStream iStream = null;
-        HttpURLConnection urlConnection = null;
-        try {
-            URL url = new URL(strUrl);
-
-            urlConnection = (HttpURLConnection) url.openConnection();
-
-            urlConnection.connect();
-
-            iStream = urlConnection.getInputStream();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
-
-            StringBuffer sb = new StringBuffer();
-
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
+            try {
+                data = downloadUrl(url[0]);
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
             }
-
-            data = sb.toString();
-
-            br.close();
-
-        } catch (Exception e) {
-            Log.d("Exception", e.toString());
-        } finally {
-            iStream.close();
-            urlConnection.disconnect();
+            return data;
         }
-        return data;
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            ParserTask parserTask = new ParserTask();
+            parserTask.execute(result);
+
+        }
+
+        private String downloadUrl(String strUrl) throws IOException {
+            String data = "";
+            InputStream iStream = null;
+            HttpURLConnection urlConnection = null;
+            try {
+                URL url = new URL(strUrl);
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+
+                urlConnection.connect();
+
+                iStream = urlConnection.getInputStream();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+
+                StringBuffer sb = new StringBuffer();
+
+                String line = "";
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+
+                data = sb.toString();
+
+                br.close();
+
+            } catch (Exception e) {
+                //  Log.d("Exception", e.toString());
+            } finally {
+                iStream.close();
+                urlConnection.disconnect();
+            }
+            return data;
+        }
     }
-}
-//    public class moveMarker extends  AsyncTask<List,Integer,Marker>{
-//        List points = new ArrayList();
-//        int index;
-//moveMarker(List points, int startIndex) {
-//    this.index = startIndex;
-//}
-//        @Override
-//        protected Marker doInBackground(final List... points) {
-//
-//                    Marker m = mMap.addMarker(new MarkerOptions().position((LatLng)points[0].get(index)));
-//                    ParserTask task = new ParserTask();
-//                    task.animateMarker(m,(LatLng)points[0].get(index+1),false);;
-//
-//            return m;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Marker m) {
-//            m.remove();
-//            index++;
-//            if(index < points.size()-1){
-//                moveMarker marker = new moveMarker(points,index);
-//                marker.execute(points);
-//            }
-//        }
-//
-//        }
+
     public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap>>> {
         // Parsing the data in non-ui thread
         @Override
@@ -283,14 +265,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             try {
                 jObject = new JSONObject(jsonData[0]);
-                DirectionsJSONParser parser = new DirectionsJSONParser(firstLocation,secondLocation);
+                DirectionsJSONParser parser = new DirectionsJSONParser(firstLocation, secondLocation);
 
                 routes = parser.parse(jObject);
+
+                Toast.makeText(getApplicationContext(), dis + dur, Toast.LENGTH_LONG).show();
+                ;
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return routes;
         }
+
 
         @Override
         protected void onPostExecute(List<List<HashMap>> result) {
@@ -315,135 +302,84 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
             }
-                 allPoints = points;
-//                     runnable = new Runnable() {
-//
-                     Marker m = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(0)));
-            animateMarker(m,(LatLng)allPoints.get(allPoints.size()-1),false);
-//                        @Override
-//                        public void run() {
-//                           animateMarker(m,(LatLng)allPoints.get(ii+1),false);
-//                        }
-//                    };
-                    //animateMarker();
+            distance.setText(distance.getText() + dis);
+            duration.setText(duration.getText() + dur);
+            allPoints = points;
 
-//                    try {
-//                        Thread.sleep(100, 1);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-                    // m.remove();
-               // }
-           // }
+            if (allPoints.size() > 0) {
+                animateMarker(false);
+                runnable = new Runnable() {
+                    Marker m = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(ii)));
 
-            lineOptions.addAll(points);
-            lineOptions.width(12);
-            lineOptions.color(Color.RED);
-            lineOptions.geodesic(true);
+                    @Override
+                    public void run() {
+                        marker.remove();
+                        animateMarker(false);
+                    }
+                };
 
+
+                lineOptions.addAll(points);
+                lineOptions.width(12);
+                lineOptions.color(Color.RED);
+                lineOptions.geodesic(true);
 
 
 // Drawing polyline in the Google Map for the i-th route
-            try {
-                mPolyline = mMap.addPolyline(lineOptions);
-            }catch (Exception e){
-                Log.e("error",e.getMessage().toString());
-                Toast.makeText(getApplicationContext(),e.getMessage().toString(),Toast.LENGTH_LONG).show();
-            }
+                try {
+                    mPolyline = mMap.addPolyline(lineOptions);
+                } catch (Exception e) {
+                  //  Log.e("error", e.getMessage().toString());
+                    Toast.makeText(getApplicationContext(), e.getMessage().toString(), Toast.LENGTH_LONG).show();
+                }
+            } else
+                Toast.makeText(getApplicationContext(), "Points Not fetched, Restart Apk or Check your Internet Connection", Toast.LENGTH_LONG).show();
         }
 
-    public void animateMarker(final Marker marker, final LatLng toPosition,
-                              final boolean hideMarker) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        Projection proj = mMap.getProjection();
-        Point startPoint = proj.toScreenLocation(marker.getPosition());
-        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-        final long duration = 10000;
+        public void animateMarker(final boolean hideMarker) {
+            final Handler handler = new Handler();
+          //  Log.e("in animate marker", ii + "");
+            final long duration = 100;
 
-        final Interpolator interpolator = new LinearInterpolator();
+            final Interpolator interpolator = new LinearInterpolator();
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed
-                        / duration);
-                double lng = t * toPosition.longitude + (1 - t)
-                        * startLatLng.longitude;
-                double lat = t * toPosition.latitude + (1 - t)
-                        * startLatLng.latitude;
-                marker.setPosition(new LatLng(lat, lng));
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    marker = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(ii)));
+                    toPosition = (LatLng) allPoints.get(ii + 1);
+                    long start = SystemClock.uptimeMillis();
+                    Projection proj = mMap.getProjection();
+                    Point startPoint = proj.toScreenLocation(marker.getPosition());
+                    final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    float t = interpolator.getInterpolation((float) elapsed
+                            / duration);
+                    //  float t = 1.0f;
+                    double lng = t * toPosition.longitude + (1 - t)
+                            * startLatLng.longitude;
+                    double lat = t * toPosition.latitude + (1 - t)
+                            * startLatLng.latitude;
+                    marker.setPosition(new LatLng(lat, lng));
 
-                if (t < 1.0) {
-                    // Post again 16ms later.
-                    handler.postDelayed(this, 16);
-                } else {
-                    if (hideMarker) {
-                        marker.setVisible(false);
+                    if (t < 1.0) {
+                        // Post again 16ms later.
+                        // handler.postDelayed(this, 16);
                     } else {
-                        marker.setVisible(true);
+                        if (hideMarker) {
+                            marker.setVisible(false);
+                        } else {
+                            marker.setVisible(true);
+                        }
+                    }
+                    if (ii < allPoints.size() - 2) {
+                        ii++;
+                        handler.postDelayed(runnable, 1000);
                     }
                 }
-            }
 
-        });
-
-//        if(ii<points.size()-2) {
-//ii++;
-//            handler.postDelayed(runnable,3000);
-//        }
-//        else{
-//            Log.e("Function loop completed",points.size()+"");
-//        }
-    }
-//
-//            public void animateMarker (final boolean hideMarker, final List points) {
-//                final Handler handler = new Handler();
-//
-//                final long duration = 100;
-//
-//                final Interpolator interpolator = new LinearInterpolator();
-//for(ii=1; ii<points.size()-1; ii++) {
-//    handler.post(new Runnable() {
-//        @Override
-//        public void run() {
-//            marker = mMap.addMarker(new MarkerOptions().position((LatLng) points.get(ii)));
-//            toPosition = (LatLng) points.get(ii);
-//            long start = SystemClock.uptimeMillis();
-//            Projection proj = mMap.getProjection();
-//            Point startPoint = proj.toScreenLocation(marker.getPosition());
-//            final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-//            long elapsed = SystemClock.uptimeMillis() - start;
-////            float t = interpolator.getInterpolation((float) elapsed
-////                    / duration);
-//            float t=1.0f;
-//            double lng = t * toPosition.longitude + (1 - t)
-//                    * startLatLng.longitude;
-//            double lat = t * toPosition.latitude + (1 - t)
-//                    * startLatLng.latitude;
-//            marker.setPosition(new LatLng(lat, lng));
-//
-//            if (t < 1.0) {
-//                // Post again 16ms later.
-//               // handler.postDelayed(this, 16);
-//            } else {
-//                if (hideMarker) {
-//                    marker.setVisible(false);
-//                } else {
-//                    marker.setVisible(true);
-//                }
-//            }
-//        }
-//
-//    });
-//
-//    try {
-//        Thread.sleep(100);
-//    } catch (InterruptedException e) {
-//        e.printStackTrace();
-//    }
-//}
+            });
+        }
 
 
         private String downloadUrl(String strUrl) throws IOException {
@@ -482,4 +418,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 }
+
 
