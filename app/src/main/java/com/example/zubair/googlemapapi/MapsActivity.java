@@ -48,21 +48,24 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    Marker firstmarker,secondmarker,m;
-    Button firstlocation_btn,secondlocation_btn,clearlocation_btn;
-    LatLng firstLocation, secondLocation,general;
+    Marker firstmarker, secondmarker, m;
+    Button firstlocation_btn, secondlocation_btn, clearlocation_btn;
+    LatLng firstLocation, secondLocation, general;
     Polyline mPolyline;
     List allPoints;
     List points;
+    Marker marker;
+    LatLng toPosition;
     int ii;
+    Runnable runnable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         points = new ArrayList();
-        firstlocation_btn=(Button)findViewById(R.id.first_loc_btn);
-        secondlocation_btn=(Button)findViewById(R.id.second_loc_btn);
-        clearlocation_btn=(Button)findViewById(R.id.clear_btn);
+        firstlocation_btn = (Button) findViewById(R.id.first_loc_btn);
+        secondlocation_btn = (Button) findViewById(R.id.second_loc_btn);
+        clearlocation_btn = (Button) findViewById(R.id.clear_btn);
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -73,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 firstLocation = general;
-                firstmarker=mMap.addMarker(new MarkerOptions().position(firstLocation).title("First Location"));
+                firstmarker = mMap.addMarker(new MarkerOptions().position(firstLocation).title("First Location"));
                 firstlocation_btn.setEnabled(false);
                 secondlocation_btn.setEnabled(true);
             }
@@ -82,7 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 secondLocation = general;
-               secondmarker= mMap.addMarker(new MarkerOptions().position(secondLocation).title("Second Location"));
+                secondmarker = mMap.addMarker(new MarkerOptions().position(secondLocation).title("Second Location"));
                 secondlocation_btn.setEnabled(false);
                 String url = getDirectionsUrl(firstLocation, secondLocation);
 
@@ -123,9 +126,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Add a marker in Sydney and move the camera
         final LatLng myLocation = new LatLng(24.948739, 67.106974);
-       //final  LatLng daniyalGhar = new LatLng(24.957561,67.050607);
-       // mMap.addMarker(new MarkerOptions().position(myLocation).title("Home"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation,14.0f));
+        //final  LatLng daniyalGhar = new LatLng(24.957561,67.050607);
+        // mMap.addMarker(new MarkerOptions().position(myLocation).title("Home"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14.0f));
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.animateCamera(CameraUpdateFactory.zoomTo(14.0f), 3000, new GoogleMap.CancelableCallback() {
             @Override
@@ -144,13 +147,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
-            public void onCameraChange (CameraPosition position) {
+            public void onCameraChange(CameraPosition position) {
 
                 // Get the center of the Map.
                 LatLng centerOfMap = mMap.getCameraPosition().target;
                 general = centerOfMap;
                 // Update your Marker's position to the center of the Map.
-                if(firstlocation_btn.isEnabled() || secondlocation_btn.isEnabled() ) {
+                if (firstlocation_btn.isEnabled() || secondlocation_btn.isEnabled()) {
                     m.setPosition(centerOfMap);
                 }
             }
@@ -159,30 +162,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-private String getDirectionsUrl(LatLng origin, LatLng dest) {
+    private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
-    // Origin of route
-    String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
 
-    // Destination of route
-    String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
 
-    // Sensor enabled
-    String sensor = "sensor=false";
-    String mode = "mode=driving";
+        // Sensor enabled
+        String sensor = "sensor=false";
+        String mode = "mode=driving";
 
-    // Building the parameters to the web service
-    String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + mode;
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + mode;
 
-    // Output format
-    String output = "json";
+        // Output format
+        String output = "json";
 
-    // Building the url to the web service
-    String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
 
 //https://maps.googleapis.com/maps/api/directions/json?origin=24.94846,67.107078&destination=24.942868,67.096983&sensor=false&mode=driving
-    return url;
-}
+        return url;
+    }
 
     public class DownloadTask extends AsyncTask<String,Integer,String> {
 
@@ -243,33 +246,33 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
         return data;
     }
 }
-    public class moveMarker extends  AsyncTask<List,Integer,Marker>{
-        List points = new ArrayList();
-        int index;
-moveMarker(List points, int startIndex) {
-    this.index = startIndex;
-}
-        @Override
-        protected Marker doInBackground(final List... points) {
-
-                    Marker m = mMap.addMarker(new MarkerOptions().position((LatLng)points[0].get(index)));
-                    ParserTask task = new ParserTask();
-                    task.animateMarker(m,(LatLng)points[0].get(index+1),false);;
-
-            return m;
-        }
-
-        @Override
-        protected void onPostExecute(Marker m) {
-            m.remove();
-            index++;
-            if(index < points.size()-1){
-                moveMarker marker = new moveMarker(points,index);
-                marker.execute(points);
-            }
-        }
-
-        }
+//    public class moveMarker extends  AsyncTask<List,Integer,Marker>{
+//        List points = new ArrayList();
+//        int index;
+//moveMarker(List points, int startIndex) {
+//    this.index = startIndex;
+//}
+//        @Override
+//        protected Marker doInBackground(final List... points) {
+//
+//                    Marker m = mMap.addMarker(new MarkerOptions().position((LatLng)points[0].get(index)));
+//                    ParserTask task = new ParserTask();
+//                    task.animateMarker(m,(LatLng)points[0].get(index+1),false);;
+//
+//            return m;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Marker m) {
+//            m.remove();
+//            index++;
+//            if(index < points.size()-1){
+//                moveMarker marker = new moveMarker(points,index);
+//                marker.execute(points);
+//            }
+//        }
+//
+//        }
     public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap>>> {
         // Parsing the data in non-ui thread
         @Override
@@ -312,9 +315,27 @@ moveMarker(List points, int startIndex) {
                 }
 
             }
-//moveMarker m = new moveMarker(points,1);
-          //  m.execute(points);
-//animateMarkerOnRoute(points);
+                 allPoints = points;
+//                     runnable = new Runnable() {
+//
+                     Marker m = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(0)));
+            animateMarker(m,(LatLng)allPoints.get(allPoints.size()-1),false);
+//                        @Override
+//                        public void run() {
+//                           animateMarker(m,(LatLng)allPoints.get(ii+1),false);
+//                        }
+//                    };
+                    //animateMarker();
+
+//                    try {
+//                        Thread.sleep(100, 1);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+                    // m.remove();
+               // }
+           // }
+
             lineOptions.addAll(points);
             lineOptions.width(12);
             lineOptions.color(Color.RED);
@@ -331,74 +352,99 @@ moveMarker(List points, int startIndex) {
             }
         }
 
-            public void animateMarker(final Marker marker, final LatLng toPosition,
+    public void animateMarker(final Marker marker, final LatLng toPosition,
                               final boolean hideMarker) {
-                final Handler handler = new Handler();
-                final long start = SystemClock.uptimeMillis();
-                Projection proj = mMap.getProjection();
-                Point startPoint = proj.toScreenLocation(marker.getPosition());
-                final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-                final long duration = 1000;
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = mMap.getProjection();
+        Point startPoint = proj.toScreenLocation(marker.getPosition());
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        final long duration = 10000;
 
-                final Interpolator interpolator = new LinearInterpolator();
+        final Interpolator interpolator = new LinearInterpolator();
 
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        long elapsed = SystemClock.uptimeMillis() - start;
-                        float t = interpolator.getInterpolation((float) elapsed
-                                / duration);
-                        double lng = t * toPosition.longitude + (1 - t)
-                                * startLatLng.longitude;
-                        double lat = t * toPosition.latitude + (1 - t)
-                                * startLatLng.latitude;
-                        marker.setPosition(new LatLng(lat, lng));
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed
+                        / duration);
+                double lng = t * toPosition.longitude + (1 - t)
+                        * startLatLng.longitude;
+                double lat = t * toPosition.latitude + (1 - t)
+                        * startLatLng.latitude;
+                marker.setPosition(new LatLng(lat, lng));
 
-                        if (t < 1.0) {
-                            // Post again 16ms later.
-                            handler.postDelayed(this, 16);
-                        } else {
-                            if (hideMarker) {
-                                marker.setVisible(false);
-                            } else {
-                                marker.setVisible(true);
-                            }
-                        }
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                } else {
+                    if (hideMarker) {
+                        marker.setVisible(false);
+                    } else {
+                        marker.setVisible(true);
                     }
-
-                });
-                Thread t = new Thread();
-                try {
-                    t.sleep(1100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
-
             }
-        private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
-            // Origin of route
-            String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+        });
 
-            // Destination of route
-            String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+//        if(ii<points.size()-2) {
+//ii++;
+//            handler.postDelayed(runnable,3000);
+//        }
+//        else{
+//            Log.e("Function loop completed",points.size()+"");
+//        }
+    }
+//
+//            public void animateMarker (final boolean hideMarker, final List points) {
+//                final Handler handler = new Handler();
+//
+//                final long duration = 100;
+//
+//                final Interpolator interpolator = new LinearInterpolator();
+//for(ii=1; ii<points.size()-1; ii++) {
+//    handler.post(new Runnable() {
+//        @Override
+//        public void run() {
+//            marker = mMap.addMarker(new MarkerOptions().position((LatLng) points.get(ii)));
+//            toPosition = (LatLng) points.get(ii);
+//            long start = SystemClock.uptimeMillis();
+//            Projection proj = mMap.getProjection();
+//            Point startPoint = proj.toScreenLocation(marker.getPosition());
+//            final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+//            long elapsed = SystemClock.uptimeMillis() - start;
+////            float t = interpolator.getInterpolation((float) elapsed
+////                    / duration);
+//            float t=1.0f;
+//            double lng = t * toPosition.longitude + (1 - t)
+//                    * startLatLng.longitude;
+//            double lat = t * toPosition.latitude + (1 - t)
+//                    * startLatLng.latitude;
+//            marker.setPosition(new LatLng(lat, lng));
+//
+//            if (t < 1.0) {
+//                // Post again 16ms later.
+//               // handler.postDelayed(this, 16);
+//            } else {
+//                if (hideMarker) {
+//                    marker.setVisible(false);
+//                } else {
+//                    marker.setVisible(true);
+//                }
+//            }
+//        }
+//
+//    });
+//
+//    try {
+//        Thread.sleep(100);
+//    } catch (InterruptedException e) {
+//        e.printStackTrace();
+//    }
+//}
 
-            // Sensor enabled
-            String sensor = "sensor=false";
-            String mode = "mode=driving";
-
-            // Building the parameters to the web service
-            String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + mode;
-
-            // Output format
-            String output = "json";
-
-            // Building the url to the web service
-            String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
-
-
-            return url;
-        }
 
         private String downloadUrl(String strUrl) throws IOException {
             String data = "";
@@ -435,7 +481,5 @@ moveMarker(List points, int startIndex) {
             return data;
         }
     }
-
-
 }
 
