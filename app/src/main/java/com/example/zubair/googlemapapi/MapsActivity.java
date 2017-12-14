@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.Manifest;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -51,10 +52,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Button firstlocation_btn,secondlocation_btn,clearlocation_btn;
     LatLng firstLocation, secondLocation,general;
     Polyline mPolyline;
+    List allPoints;
+    List points;
+    int ii;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        points = new ArrayList();
         firstlocation_btn=(Button)findViewById(R.id.first_loc_btn);
         secondlocation_btn=(Button)findViewById(R.id.second_loc_btn);
         clearlocation_btn=(Button)findViewById(R.id.clear_btn);
@@ -238,6 +243,39 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
         return data;
     }
 }
+    public class moveMarker extends  AsyncTask<List,Integer,Marker>{
+        List points = new ArrayList();
+        int index;
+moveMarker(List points, int startIndex) {
+    this.index = startIndex;
+}
+        @Override
+        protected Marker doInBackground(final List... points) {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Marker m = mMap.addMarker(new MarkerOptions().position((LatLng)points[0].get(index)));
+                    ParserTask task = new ParserTask();
+                    task.animateMarker(m,(LatLng)points[0].get(index+1),false);;
+                }
+            },1000);
+
+
+            return m;
+        }
+
+        @Override
+        protected void onPostExecute(Marker m) {
+            m.remove();
+            index++;
+            if(index < points.size()-1){
+                moveMarker marker = new moveMarker(points,index);
+                marker.execute(points);
+            }
+        }
+
+        }
     public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap>>> {
         // Parsing the data in non-ui thread
         @Override
@@ -248,7 +286,7 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
             try {
                 jObject = new JSONObject(jsonData[0]);
-                DirectionsJSONParser parser = new DirectionsJSONParser();
+                DirectionsJSONParser parser = new DirectionsJSONParser(firstLocation,secondLocation);
 
                 routes = parser.parse(jObject);
             } catch (Exception e) {
@@ -278,58 +316,64 @@ private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
                     points.add(position);
                 }
-//animateMarkerOnRoute(points);
-                lineOptions.addAll(points);
-                lineOptions.width(12);
-                lineOptions.color(Color.RED);
-                lineOptions.geodesic(true);
 
             }
+moveMarker m = new moveMarker(points,1);
+            m.execute(points);
+//animateMarkerOnRoute(points);
+            lineOptions.addAll(points);
+            lineOptions.width(12);
+            lineOptions.color(Color.RED);
+            lineOptions.geodesic(true);
+
+
 
 // Drawing polyline in the Google Map for the i-th route
-           mPolyline =  mMap.addPolyline(lineOptions);
+            try {
+                mPolyline = mMap.addPolyline(lineOptions);
+            }catch (Exception e){
+                Log.e("error",e.getMessage().toString());
+                Toast.makeText(getApplicationContext(),e.getMessage().toString(),Toast.LENGTH_LONG).show();
+            }
         }
 
-//private  void animateMarkerOnRoute(ArrayList points){
-//    for(int i=0; i< points.size()-1; i++){
-//
-//    }
-//}
-        //    public void animateMarker(final Marker marker, final LatLng toPosition,
-//                              final boolean hideMarker) {
-//        final Handler handler = new Handler();
-//        final long start = SystemClock.uptimeMillis();
-//        Projection proj = mMap.getProjection();
-//        Point startPoint = proj.toScreenLocation(marker.getPosition());
-//        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-//        final long duration = 30000;
-//
-//        final Interpolator interpolator = new LinearInterpolator();
-//
-//        handler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                long elapsed = SystemClock.uptimeMillis() - start;
-//                float t = interpolator.getInterpolation((float) elapsed
-//                        / duration);
-//                double lng = t * toPosition.longitude + (1 - t)
-//                        * startLatLng.longitude;
-//                double lat = t * toPosition.latitude + (1 - t)
-//                        * startLatLng.latitude;
-//                marker.setPosition(new LatLng(lat, lng));
-//
-//                if (t < 1.0) {
-//                    // Post again 16ms later.
-//                    handler.postDelayed(this, 16);
-//                } else {
-//                    if (hideMarker) {
-//                        marker.setVisible(false);
-//                    } else {
-//                        marker.setVisible(true);
-//                    }
-//                }
-//            }
-//        });
+            public void animateMarker(final Marker marker, final LatLng toPosition,
+                              final boolean hideMarker) {
+                final Handler handler = new Handler();
+                final long start = SystemClock.uptimeMillis();
+                Projection proj = mMap.getProjection();
+                Point startPoint = proj.toScreenLocation(marker.getPosition());
+                final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+                final long duration = 1000;
+
+                final Interpolator interpolator = new LinearInterpolator();
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        long elapsed = SystemClock.uptimeMillis() - start;
+                        float t = interpolator.getInterpolation((float) elapsed
+                                / duration);
+                        double lng = t * toPosition.longitude + (1 - t)
+                                * startLatLng.longitude;
+                        double lat = t * toPosition.latitude + (1 - t)
+                                * startLatLng.latitude;
+                        marker.setPosition(new LatLng(lat, lng));
+
+                        if (t < 1.0) {
+                            // Post again 16ms later.
+                            handler.postDelayed(this, 16);
+                        } else {
+                            if (hideMarker) {
+                                marker.setVisible(false);
+                            } else {
+                                marker.setVisible(true);
+                            }
+                        }
+                    }
+
+                });
+            }
         private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
             // Origin of route
