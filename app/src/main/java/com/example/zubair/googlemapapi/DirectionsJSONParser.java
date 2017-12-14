@@ -1,6 +1,9 @@
 package com.example.zubair.googlemapapi;
 
+import android.content.Context;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -19,7 +22,7 @@ public class DirectionsJSONParser {
 
 
     LatLng firstLocation,secondLocation;
-    DirectionsJSONParser (LatLng firstLocation,LatLng secondLocation){
+    DirectionsJSONParser (LatLng firstLocation, LatLng secondLocation){
         this.firstLocation = firstLocation;
         this.secondLocation = secondLocation;
     }
@@ -58,6 +61,8 @@ public class DirectionsJSONParser {
         JSONArray jLegs = null;
         JSONArray jSteps = null;
 
+
+
         try {
 
             jRoutes = jObject.getJSONArray("routes");
@@ -65,7 +70,15 @@ public class DirectionsJSONParser {
             /** Traversing all routes */
             for(int i=0;i<jRoutes.length();i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
-                List path = new ArrayList<HashMap<String, String>>();
+                for (int j = 0; j < jLegs.length(); j++) {
+                    MapsActivity.dur   = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("duration")).get("text");
+                     MapsActivity.dis = (String) ((JSONObject)    ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+
+                    // dis = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+
+
+                }
+                    List path = new ArrayList<HashMap<String, String>>();
                 //Log.e("In Direcrion class", "in direction");
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
@@ -124,6 +137,7 @@ public class DirectionsJSONParser {
             e.printStackTrace();
         }catch (Exception e){
         }
+
 
         return routes;
     }

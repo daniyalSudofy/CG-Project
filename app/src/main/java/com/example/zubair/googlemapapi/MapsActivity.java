@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.Manifest;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -50,11 +51,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     Marker firstmarker,secondmarker,m;
     Button firstlocation_btn,secondlocation_btn,clearlocation_btn;
+    TextView duration , distance;
     LatLng firstLocation, secondLocation,general;
     Polyline mPolyline;
     List allPoints;
     List points;
     int ii;
+    public static String dis;
+    public static String dur;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +67,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         firstlocation_btn=(Button)findViewById(R.id.first_loc_btn);
         secondlocation_btn=(Button)findViewById(R.id.second_loc_btn);
         clearlocation_btn=(Button)findViewById(R.id.clear_btn);
+        distance = (TextView) findViewById(R.id.distance);
+        duration = (TextView) findViewById(R.id.duration);
+
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -283,6 +290,9 @@ moveMarker(List points, int startIndex) {
                 DirectionsJSONParser parser = new DirectionsJSONParser(firstLocation,secondLocation);
 
                 routes = parser.parse(jObject);
+                distance.setText(distance.getText()+dis);
+                duration.setText(duration.getText()+dur);
+                Toast.makeText(getApplicationContext(),dis+dur,Toast.LENGTH_LONG).show();;
             } catch (Exception e) {
                 e.printStackTrace();
             }
