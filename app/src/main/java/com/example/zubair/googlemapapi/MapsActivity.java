@@ -251,16 +251,10 @@ moveMarker(List points, int startIndex) {
 }
         @Override
         protected Marker doInBackground(final List... points) {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
+
                     Marker m = mMap.addMarker(new MarkerOptions().position((LatLng)points[0].get(index)));
                     ParserTask task = new ParserTask();
                     task.animateMarker(m,(LatLng)points[0].get(index+1),false);;
-                }
-            },1000);
-
 
             return m;
         }
@@ -318,8 +312,8 @@ moveMarker(List points, int startIndex) {
                 }
 
             }
-moveMarker m = new moveMarker(points,1);
-            m.execute(points);
+//moveMarker m = new moveMarker(points,1);
+          //  m.execute(points);
 //animateMarkerOnRoute(points);
             lineOptions.addAll(points);
             lineOptions.width(12);
@@ -373,6 +367,13 @@ moveMarker m = new moveMarker(points,1);
                     }
 
                 });
+                Thread t = new Thread();
+                try {
+                    t.sleep(1100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
