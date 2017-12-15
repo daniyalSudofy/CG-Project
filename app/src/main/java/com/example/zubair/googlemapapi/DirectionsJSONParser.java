@@ -1,6 +1,9 @@
 package com.example.zubair.googlemapapi;
 
+import android.content.Context;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -19,35 +22,35 @@ public class DirectionsJSONParser {
 
 
     LatLng firstLocation,secondLocation;
-    DirectionsJSONParser (LatLng firstLocation,LatLng secondLocation){
+    DirectionsJSONParser (LatLng firstLocation, LatLng secondLocation){
         this.firstLocation = firstLocation;
         this.secondLocation = secondLocation;
     }
      List addStartLine(double Lat, double Lng, LatLng firstLocation){
         List li = new ArrayList();
-        Log.e("In func","");
+        //Log.e("In func","");
         for(float t = 0 ; t<1; t+=0.1 ){
             double lat = firstLocation.latitude +(Lat-firstLocation.latitude)*t;
             double lng = firstLocation.longitude +(Lng-firstLocation.longitude)*t;
-            Log.e("Lat Lang",lat+" "+lng);
+            //Log.e("Lat Lang",lat+" "+lng);
             LatLng p = new LatLng(lat,lng);
             li.add(p);
         }
-        Log.e("List size",li.size()+"");
+        //Log.e("List size",li.size()+"");
         return  li;
     }
     List addEndLine(double Lat, double Lng, LatLng secondLocation
     ){
         List li = new ArrayList();
-        Log.e("In func","");
+       // Log.e("In func","");
         for(float t = 0 ; t<=1; t+=0.1 ){
             double lat = Lat  +(secondLocation.latitude-Lat)*t;
             double lng = Lng +(secondLocation.longitude-Lng)*t;
-            Log.e("Lat Lang",lat+" "+lng);
+            //Log.e("Lat Lang",lat+" "+lng);
             LatLng p = new LatLng(lat,lng);
             li.add(p);
         }
-        Log.e("List size",li.size()+"");
+        ///Log.e("List size",li.size()+"");
         return  li;
     }
     /** Receives a JSONObject and returns a list of lists containing latitude and longitude */
@@ -58,6 +61,8 @@ public class DirectionsJSONParser {
         JSONArray jLegs = null;
         JSONArray jSteps = null;
 
+
+
         try {
 
             jRoutes = jObject.getJSONArray("routes");
@@ -65,7 +70,15 @@ public class DirectionsJSONParser {
             /** Traversing all routes */
             for(int i=0;i<jRoutes.length();i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
-                List path = new ArrayList<HashMap<String, String>>();
+                for (int j = 0; j < jLegs.length(); j++) {
+                    MapsActivity.dur   = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("duration")).get("text");
+                     MapsActivity.dis = (String) ((JSONObject)    ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+
+                    // dis = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+
+
+                }
+                    List path = new ArrayList<HashMap<String, String>>();
                 //Log.e("In Direcrion class", "in direction");
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
@@ -75,14 +88,14 @@ public class DirectionsJSONParser {
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
                         polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
-                        Log.e("in final loop", k + "");
+                        //Log.e("in final loop", k + "");
                         if (k == 0) {
-                            Log.e("k", "k is zero");
+                           // Log.e("k", "k is zero");
                             Double lat = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lat");
                             Double lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lng");
-                            Log.e("lat lang is ", lat + lng + "");
+                           // Log.e("lat lang is ", lat + lng + "");
                             List li = addStartLine(lat, lng, firstLocation);
-                            Log.e("list size ", li.size() + "");
+                            //Log.e("list size ", li.size() + "");
                             for (int z = 0; z < li.size(); z++) {
                                 HashMap<String, String> hm = new HashMap<String, String>();
                                 hm.put("lat", Double.toString(((LatLng) li.get(z)).latitude));
@@ -102,12 +115,12 @@ public class DirectionsJSONParser {
                         }
                     }
                     {
-                        Log.e("k", "k is zero");
+                       // Log.e("k", "k is zero");
                         Double lat = (Double) ((JSONObject) ((JSONObject) jSteps.get(jSteps.length() - 1)).get("end_location")).get("lat");
                         Double lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(jSteps.length() - 1)).get("end_location")).get("lng");
-                        Log.e("lat lang is ", lat + lng + "");
+                        //Log.e("lat lang is ", lat + lng + "");
                         List li = addEndLine(lat, lng, secondLocation);
-                        Log.e("list size ", li.size() + "");
+                        //Log.e("list size ", li.size() + "");
                         for (int z = 0; z < li.size(); z++) {
                             HashMap<String, String> hm = new HashMap<String, String>();
                             hm.put("lat", Double.toString(((LatLng) li.get(z)).latitude));
@@ -124,6 +137,7 @@ public class DirectionsJSONParser {
             e.printStackTrace();
         }catch (Exception e){
         }
+
 
         return routes;
     }
