@@ -22,6 +22,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -75,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         clearlocation_btn = (Button) findViewById(R.id.clear_btn);
 
 
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -83,7 +86,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 firstLocation = general;
-                firstmarker = mMap.addMarker(new MarkerOptions().position(firstLocation).title("First Location"));
+                firstmarker = mMap.addMarker(new MarkerOptions()
+                        .position(firstLocation)
+                        .title("First Location")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                        );
+
                 firstlocation_btn.setEnabled(false);
                 secondlocation_btn.setEnabled(true);
             }
@@ -92,7 +100,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 secondLocation = general;
-                secondmarker = mMap.addMarker(new MarkerOptions().position(secondLocation).title("Second Location"));
+                secondmarker = mMap.addMarker(new MarkerOptions()
+                        .position(secondLocation)
+                        .title("Second Location")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                );
                 secondlocation_btn.setEnabled(false);
                 String url = getDirectionsUrl(firstLocation, secondLocation);
 
@@ -143,7 +155,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Here you can take the snapshot or whatever you want
                 m = mMap.addMarker(new MarkerOptions()
                         .position(myLocation)
-                        .title("My Location"));
+                        .title("My Location")
+                );
                 //animateMarker(m,daniyalGhar,false);
             }
 
@@ -337,16 +350,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         public void animateMarker(final boolean hideMarker) {
+
             final Handler handler = new Handler();
           //  Log.e("in animate marker", ii + "");
             final long duration = 100;
 
             final Interpolator interpolator = new LinearInterpolator();
 
+            final  BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.car);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    marker = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(ii)));
+                    marker = mMap.addMarker(new MarkerOptions()
+                            .position((LatLng) allPoints.get(ii))
+                            .icon(icon)
+                    );
                     toPosition = (LatLng) allPoints.get(ii + 1);
                     long start = SystemClock.uptimeMillis();
                     Projection proj = mMap.getProjection();
