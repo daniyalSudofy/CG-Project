@@ -7,6 +7,7 @@ import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -61,9 +63,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker marker;
     LatLng toPosition;
     int ii;
+    TextToSpeech tt;
     Runnable runnable;
     public static String dis;
     public static String dur;
+
+    String voicenottospeak="no";
+    String voicetospeak;
+    List voice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +131,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 firstmarker.remove();
                 secondmarker.remove();
                 mPolyline.remove();
+                distance.setText("Distance : ");
+                duration.setText("Duration : ");
+
             }
         });
     }
@@ -318,14 +328,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             distance.setText(distance.getText() + dis);
             duration.setText(duration.getText() + dur);
             allPoints = points;
+voice=DirectionsJSONParser.voicelist;
+            tt=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    tt.setLanguage(Locale.ENGLISH);
 
+
+                }
+            });
             if (allPoints.size() > 0) {
                 animateMarker(false);
                 runnable = new Runnable() {
                     Marker m = mMap.addMarker(new MarkerOptions().position((LatLng) allPoints.get(ii)));
 
+
+
                     @Override
                     public void run() {
+                        if(voicenottospeak.equals((String) voice.get(ii))){
+                    }
+                        else{
+                            voicetospeak=(String)voice.get(ii);
+
+                            Toast.makeText(getApplicationContext(),voicetospeak,Toast.LENGTH_SHORT).show();
+
+                            tt.speak(voicenottospeak,TextToSpeech.QUEUE_FLUSH,null);
+
+                        }
+
                         marker.remove();
                         animateMarker(false);
                     }
@@ -391,6 +422,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     }
                     if (ii < allPoints.size() - 2) {
+                        if(voicenottospeak.equals((String)voice.get(ii))){
+
+                        }
+                        else{
+                            voicetospeak=(String)voice.get(ii);
+                            Toast.makeText(getApplicationContext(),voicetospeak,Toast.LENGTH_SHORT).show();
+
+                            tt.speak(voicenottospeak,TextToSpeech.QUEUE_FLUSH,null);
+                        }
                         ii++;
                         handler.postDelayed(runnable, 1000);
                     }

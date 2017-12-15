@@ -1,9 +1,11 @@
 package com.example.zubair.googlemapapi;
 
 import android.content.Context;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -14,6 +16,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Zubair on 13-Dec-17.
@@ -22,10 +25,16 @@ public class DirectionsJSONParser {
 
 
     LatLng firstLocation,secondLocation;
+
+
+    public static List voicelist;
     DirectionsJSONParser (LatLng firstLocation, LatLng secondLocation){
         this.firstLocation = firstLocation;
         this.secondLocation = secondLocation;
+
+        voicelist=new ArrayList();
     }
+
      List addStartLine(double Lat, double Lng, LatLng firstLocation){
         List li = new ArrayList();
         //Log.e("In func","");
@@ -83,18 +92,24 @@ public class DirectionsJSONParser {
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
-
+Double start_lat,start_lng,end_lat,end_lng;
+                    String voicetext=null;
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
-                        polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
+                       voicetext = (String) (((JSONObject) jSteps.get(k)).get("html_instructions"));
+                        start_lat =(Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lat");
+                        start_lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lng");
+                        end_lat = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("end_location")).get("lat");
+                        end_lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("end_location")).get("lng");
+
                         //Log.e("in final loop", k + "");
                         if (k == 0) {
                            // Log.e("k", "k is zero");
                             Double lat = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lat");
                             Double lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location")).get("lng");
                            // Log.e("lat lang is ", lat + lng + "");
-                            List li = addStartLine(lat, lng, firstLocation);
+                            List li = getPoints(firstLocation,new LatLng(lat,lng),voicetext);
                             //Log.e("list size ", li.size() + "");
                             for (int z = 0; z < li.size(); z++) {
                                 HashMap<String, String> hm = new HashMap<String, String>();
@@ -103,8 +118,8 @@ public class DirectionsJSONParser {
                                 path.add(hm);
                             }
                         }
-
-                        List list = decodePoly(polyline);
+List list=getPoints(new LatLng(start_lat,start_lng),new LatLng(end_lat,end_lng),voicetext);
+                      //  List list = decodePoly(polyline);
 
                         /** Traversing all points */
                         for (int l = 0; l < list.size(); l++) {
@@ -119,7 +134,7 @@ public class DirectionsJSONParser {
                         Double lat = (Double) ((JSONObject) ((JSONObject) jSteps.get(jSteps.length() - 1)).get("end_location")).get("lat");
                         Double lng = (Double) ((JSONObject) ((JSONObject) jSteps.get(jSteps.length() - 1)).get("end_location")).get("lng");
                         //Log.e("lat lang is ", lat + lng + "");
-                        List li = addEndLine(lat, lng, secondLocation);
+                        List li = getPoints(new LatLng(lat,lng), secondLocation,voicetext);
                         //Log.e("list size ", li.size() + "");
                         for (int z = 0; z < li.size(); z++) {
                             HashMap<String, String> hm = new HashMap<String, String>();
@@ -146,7 +161,34 @@ public class DirectionsJSONParser {
      * Method to decode polyline points
      * Courtesy : jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
      * */
+public List getPoints(LatLng start,LatLng end,String voicetext){
+    double v=0.0001789875;  //250m step
+    List points =new ArrayList();
+    int lat_steps=(int)Math.abs((end.latitude-start.latitude)/v);
+    int  lng_steps=(int)Math.abs((end.longitude-start.longitude)/v);
+    int  count=getmax(lat_steps,lng_steps);
+    double lat_inc =lat_steps/count;
+    double lng_inc =lng_steps/count;
+    for(int i=0;i<count; i++){
+        points.add(new LatLng(start.latitude+lat_inc*i,start.longitude+lng_inc*i) );
+        voicelist.add("no");
+    }
+    points.add(new LatLng(start.latitude+lat_inc*(count+1),start.longitude+lng_inc*(count+1)));
+    voicelist.add(voicetext);
 
+
+    return points;
+
+
+
+}
+    public int  getmax(int lat,int lng){
+        if(lat>lng){
+            return lat;
+        }
+        else
+            return lng;
+    }
     private List decodePoly(String encoded) {
 
         List poly = new ArrayList();
